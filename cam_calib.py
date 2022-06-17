@@ -91,7 +91,7 @@ class carla_camera_calibration():
     """
     calibration of carla camera
     """
-    def _init_(self,image_w=800,image_h=600,image_fov=110):
+    def __init__(self,image_w=800,image_h=600,image_fov=110):
         self.image_w = image_w
         self.image_h=image_h
         self.image_fov=image_fov
@@ -112,7 +112,8 @@ class carla_camera_calibration():
         # Add an extra 1.0 at the end of each 3d point so it becomes of shape (4, number_of_points) and it can be multiplied by a (4, 4) matrix.
         points_3d = np.r_[
                 points_3d, [np.ones(points_3d.shape[1])]]
-        self.world_points=points_3d
+        world_points=points_3d
+        return world_points
 
     def camera_coordinates(self,whichbound):
         if whichbound=="south":
@@ -135,11 +136,11 @@ class carla_camera_calibration():
         return world_2_camera
        
 
-    def points_world_to_camera(self,whichbound,image_w,image_h,image_fov):
+    def points_world_to_camera(self,world_points,whichbound):
         # Transform the points from world space to camera space.
-        self.points_3D_world()
+        # world_points=points_3D_world()
         world_2_camera=self.world_to_camera_matrix(whichbound)
-        camera_points= np.dot(world_2_camera, self.world_points)
+        camera_points= np.dot(world_2_camera, world_points)
 
         # New we must change from UE4's coordinate system to an "standard"
         # camera coordinate system (the same used by OpenCV):
@@ -164,7 +165,7 @@ class carla_camera_calibration():
             camera_points[0]])
 
         # Finally we can use our K matrix to do the actual 3D -> 2D.
-        self.projection_matrix(image_w,image_h,image_fov)
+        self.projection_matrix(self.image_w,self.image_h,self.image_fov)
         points_2d = np.dot(self.K, point_in_camera_coords)
 
         # Remember to normalize the x, y values by the 3rd value.
